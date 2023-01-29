@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/credit_card_widget.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stripe_app/bloc/pay/pay_bloc.dart';
+
 import 'package:stripe_app/data/credit_cards.dart';
 import 'package:stripe_app/helpers/helpers.dart';
 import 'package:stripe_app/models/custom_credit_cards.dart';
@@ -63,7 +66,10 @@ class _ShowCreditCardsList extends StatelessWidget {
         final card = cards[index];
 
         return GestureDetector(
-          onTap: () => Navigator.push(context, navegateFadeIn( context, const CardPage() )),
+          onTap: () {
+            context.read<PayBloc>().add(OnSelectCard(card));
+            Navigator.push(context, navegateFadeIn( context, const CardPage() ));
+          },
           child: _CreditCardList(card: card),
         );
 

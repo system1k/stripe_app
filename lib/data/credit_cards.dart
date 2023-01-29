@@ -14,10 +14,10 @@ final List<CustomCreditCard> cards = [
     CustomCreditCard(
       cardNumberHidden: '5555',
       cardNumber: '5555555555554444',
-      brand: 'Yamilka Rodriguez',
+      brand: 'master card',
       cvv: '213',
       expiracyDate: '01/25',
-      cardHolderName: 'Melissa Flores'
+      cardHolderName: 'Yamilka Rodriguez'
     ),
 
     CustomCreditCard(
