@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stripe_app/bloc/pay/pay_bloc.dart';
+import 'package:stripe_app/helpers/helpers.dart';
+import 'package:stripe_app/services/stripe_services.dart';
+import 'package:stripe_payment/stripe_payment.dart';
 
 class TotalPayButton extends StatelessWidget {
   const TotalPayButton({Key? key}) : super(key: key);
@@ -12,6 +15,7 @@ class TotalPayButton extends StatelessWidget {
   Widget build(BuildContext context) {
 
     final width = MediaQuery.of(context).size.width;
+    final payBloc = BlocProvider.of<PayBloc>(context).state;
 
     return Container(
       width: width,
@@ -31,9 +35,9 @@ class TotalPayButton extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Text('Total', style: TextStyle(fontSize: 20, fontWeight: FontWeight.normal)),
-              Text('\$ 250', style: TextStyle(fontSize: 20))
+            children: [
+              const Text('Total', style: TextStyle(fontSize: 20, fontWeight: FontWeight.normal)),
+              Text('${payBloc.amountToPay} ${payBloc.currency}', style: const TextStyle(fontSize: 20))
             ],
           ),
 
@@ -81,7 +85,35 @@ class _PayButton extends StatelessWidget {
           
         ],
       ),
-      onPressed: (){}
+      onPressed: () async {
+        showLoading(context);
+
+        final stripeServices = StripeServices();
+        final payState = BlocProvider.of<PayBloc>(context).state;
+        final card = payState.card;
+        final monthYear = card!.expiracyDate.split('/');
+
+        final resp = await stripeServices.payWithExistingCard(
+          amount: payState.amountToPayToString, 
+          currency: payState.currency, 
+          card: CreditCard(
+            number: card.cardNumber,
+            expMonth: int.parse(monthYear[0]),
+            expYear: int.parse(monthYear[1])
+          )
+        );
+
+        // ignore: use_build_context_synchronously
+        Navigator.pop(context);
+
+        if(resp.ok) {
+          // ignore: use_build_context_synchronously
+          showAlert(context, 'tarjeta ok', 'todo bien');
+        } else {
+          // ignore: use_build_context_synchronously
+          showAlert(context, 'algo salio mal', resp.msg!);
+        }
+      }
     );
   }
 
@@ -106,7 +138,15 @@ class _PayButton extends StatelessWidget {
           
         ],
       ),
-      onPressed: (){}
+      onPressed: () async {
+        final stripeServices = StripeServices();
+        final payState = BlocProvider.of<PayBloc>(context).state;
+
+        final resp = await stripeServices.payWithAppleOrGoogle(
+          amount: payState.amountToPayToString, 
+          currency: payState.currency
+        );
+      }
     );
   }
 }
